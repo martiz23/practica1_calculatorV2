@@ -29,15 +29,17 @@ def serv_client(connection):
 
     # Recibir Suma
     data = connection.recv(1024)
-    msg = data.decode()
+    print(data)
+    deserializado = marshal.loads(data)
+    #msg = data.decode()
 
     print("Operación recibida.")
 
-    operation_list = msg.split()
-    if(len(operation_list) == 3):
-        oprnd1 = operation_list[0]
-        operation = operation_list[1]
-        oprnd2 = operation_list[2]
+    #operation_list = marshal.loads(data)
+    if(len(deserializado) == 3):
+        oprnd1 = deserializado[0]
+        operation = deserializado[1]
+        oprnd2 = deserializado[2]
         print("Operación en curso...")
 
         # Enviar datos como cliente al servidor operador específico

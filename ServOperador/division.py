@@ -13,7 +13,7 @@ ThreadCount = 0
 
 def stablish_conection_with_NS():
     ClientSocket = socket.socket()
-    hostNS = '192.168.56.1'
+    hostNS = '192.168.194.96'
     portNS = 1233
 
     print('Esperando conexión con NS')
