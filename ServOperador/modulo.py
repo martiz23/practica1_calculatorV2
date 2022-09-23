@@ -7,7 +7,7 @@ ServerSocket = socket.socket()
 h_name = socket.gethostname()
 host = socket.gethostbyname(h_name)
 print("host =" + host)
-port = 1235
+port = 1238
 ThreadCount = 0
 
 
@@ -31,7 +31,7 @@ def stablish_conection_with_NS():
     print(response.decode())
 
     # Enviar
-    data = ('-', host, port)
+    data = ('%', host, port)
     serializados = marshal.dumps(data)
     ClientSocket.send(serializados)
 
@@ -43,17 +43,12 @@ def stablish_conection_with_NS():
 
 
 def threaded_client(connection):
-    #connection.send(str.encode('Operación de resta.'))
+    #connection.send(str.encode('Operación de módulo.'))
     data = connection.recv(1024)
-    deserializados = marshal.loads(data)
+    res = marshal.loads(data)
 
-    res = deserializados[0]
-
-    for i in range(1, len(deserializados)):
-        res = res - deserializados[i]
-
-    if data:
-        connection.send(str(res).encode())
+    res = res[0] % res[1]
+    connection.send(str(res).encode())
     connection.close()
 
 

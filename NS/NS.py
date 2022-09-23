@@ -1,3 +1,4 @@
+from queue import Empty
 import socket
 import os
 import marshal
@@ -29,49 +30,49 @@ def serv_client(connection):
 
     # Recibir Suma
     data = connection.recv(1024)
-    print(data)
-    deserializado = marshal.loads(data)
-    #msg = data.decode()
+    if(len(data) > 0):
+        deserializado = marshal.loads(data)
+        #print("Operación recibida.")
 
-    print("Operación recibida.")
-
-    #operation_list = marshal.loads(data)
-    if(len(deserializado) == 3):
         oprnd1 = deserializado[0]
         operation = deserializado[1]
         oprnd2 = deserializado[2]
-        print("Operación en curso...")
 
-        # Enviar datos como cliente al servidor operador específico
-        ss = socket.socket(socket.AF_INET,
-                           socket.SOCK_STREAM)
+        #print("Operación en curso...")
 
-        host, port = ipTable[operation]
+        # Validate that there's an ip for the server of that operation
+        if(operation in ipTable):
+            host, port = ipTable[operation]
 
-        datos = (int(oprnd1), int(oprnd2))
-        serializados = marshal.dumps(datos)
-        msg = "Conectando a Host {} y Puerto {}".format(host, port)
+            ss = socket.socket(socket.AF_INET,
+                               socket.SOCK_STREAM)
 
-        try:
-            ss.connect((host, port))
-            print("Conectado.")
-        except socket.error as e:
-            print("Imposible conectar con servidor operador " + operation)
-            print(str(e))
+            datos = (int(oprnd1), int(oprnd2))
+            serializados = marshal.dumps(datos)
+            msg = "Conectando a Host {} y Puerto {}".format(host, port)
 
-        print((ss.recv(port)).decode())
-        ss.send(serializados)
-        msg = ss.recv(port)
-        ss.close()
+            try:
+                ss.connect((host, port))
+                # print("Conectado.")
+                # print((ss.recv(port)).decode())
+                ss.send(serializados)
+                msg = ss.recv(port)
+                ss.close()
 
-        # Enviar resultado de operación al cliente que la pidió
-        connection.send(msg)
+                # Enviar resultado de operación al cliente que la pidió
+                connection.send(msg)
+                return
+            except socket.error as e:
+                print("Imposible conectar con servidor operador " + operation)
+                print(str(e))
 
-    else:
-        output = "¡operación no válida!"
+            #print("Resultado enviado al cliente.")
+
+        else:
+            print("¡Servidor "+operation+" aún no en tabla de direcciones!")
+
+        output = "Imposible realizar la operación en estos momentos, intente después."
         connection.send(output.encode())
-
-    print("Resultado enviado al cliente.")
 
 
 def accept_connection(connection):
@@ -103,7 +104,11 @@ def threaded_client(connection):
     print(data.decode())
 
     if(data.decode() == "Cliente"):
-        serv_client(connection)
+        try:
+            serv_client(connection)
+        except ConnectionResetError as e:
+            print('Conexión con ' + address[0] +
+                  ' interrumpida por parte del cliente.')
     elif(data.decode() == "Servidor Operador"):
         accept_connection(connection)
     else:

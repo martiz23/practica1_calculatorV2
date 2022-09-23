@@ -13,7 +13,7 @@ ThreadCount = 0
 
 def stablish_conection_with_NS():
     ClientSocket = socket.socket()
-    hostNS = '192.168.194.96'
+    hostNS = '192.168.56.1'
     portNS = 1233
 
     print('Esperando conexión con NS')
@@ -43,7 +43,7 @@ def stablish_conection_with_NS():
 
 
 def threaded_client(connection):
-    connection.send(str.encode('Operación de suma.'))
+    #connection.send(str.encode('Operación de suma.'))
     data = connection.recv(1024)
     deserializados = marshal.loads(data)
 

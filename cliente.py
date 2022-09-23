@@ -1,8 +1,10 @@
+import re
 import socket
 import marshal
+import re
 
 ClientSocket = socket.socket()
-hostNS = '192.168.194.96'
+hostNS = '192.168.56.1'
 portNS = 1233
 
 try:
@@ -19,44 +21,38 @@ response = ClientSocket.recv(1024)
 print(response.decode())
 
 
-# here we get the input from the user
+# Prompts the user for input string
 print("Introduce la operación mátematica a realizar.")
 print(
     "La operación debe tener la forma [operando] [operador] [operando]")
-print("Los operadores disponibles son: \n   (+) Suma \n   (-) Resta \n   (*) Multiplicación \n   (/)División")
+print("Los operadores disponibles son: \n   (+) Suma \n   (-) Resta \n   (*) Multiplicación \n   (/)División \n   (/)Módulo \n   (/)Potencia")
 print("\nEjemplo: 4 + 5")
 print("¡No olvides el espacio!")
 inp = input(">> ")
 
-inpList = inp.split()
+# compiling the pattern for the operation format
+pat = re.compile("\d\s[+-/*%^]\s\d")
 
-if(len(inpList) == 3):
+# Checks whether the whole string matches the re.pattern or not
+if re.fullmatch(pat, inp):
+    inpList = inp.split()
     prnd1 = inpList[0]
     operation = inpList[1]
     oprnd2 = inpList[2]
+    if(operation == "/" and oprnd2 == "0"):
+        print("División entre cero.")
+    else:
+        serializados = marshal.dumps(inpList)
+        # Send operation
+        ClientSocket.send(serializados)
+        # ClientSocket.send(inp.encode())
 
-    if(operation == "/" or operation == "*" or operation == "+" or operation == "-"):
-        if(oprnd2 != "0" ):
-            serializados = marshal.dumps(inpList)
-            print(oprnd2)
-            print("lista")
-            # Send operation
-            ClientSocket.send(serializados)
-            #ClientSocket.send(inp.encode())
+        # Here we received output from the server socket
+        response = ClientSocket.recv(1024)
+        print("Resultado: "+inp+" = "+response.decode())
 
-            # Here we received output from the server socket
-            response = ClientSocket.recv(1024)
-            print("Resultado: "+inp+" = "+response.decode())
-            input("\nPresiona enter para salir xD \n")
-        else:
-           print("Operación no válida")
-    else: 
-        print("No es un operando valido")   
-
-            
 else:
-     output = "¡operación no válida!"
+    print("¡Formato no válido!")
 
+input("\nPresiona enter para salir xD \n")
 ClientSocket.close()
-
-
