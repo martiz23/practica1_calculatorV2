@@ -25,13 +25,13 @@ print(response.decode())
 print("Introduce la operación mátematica a realizar.")
 print(
     "La operación debe tener la forma [operando] [operador] [operando]")
-print("Los operadores disponibles son: \n   (+) Suma \n   (-) Resta \n   (*) Multiplicación \n   (/)División \n   (/)Módulo \n   (/)Potencia")
+print("Los operadores disponibles son: \n   (+) Suma \n   (-) Resta \n   (*) Multiplicación \n   (/)División \n   (%)Módulo \n   (^)Potencia")
 print("\nEjemplo: 4 + 5")
 print("¡No olvides el espacio!")
 inp = input(">> ")
 
 # compiling the pattern for the operation format
-pat = re.compile("\d\s[+-/*%^]\s\d")
+pat = re.compile("[0-9]+\s[+-/*%^]\s[0-9]+")
 
 # Checks whether the whole string matches the re.pattern or not
 if re.fullmatch(pat, inp):

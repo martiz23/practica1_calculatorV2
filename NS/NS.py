@@ -24,6 +24,40 @@ print('Esperando conexiones...')
 ServerSocket.listen(5)
 
 
+def get_result_from_serv_op(oprnd1, operation, oprnd2):
+    # Validate that there's an ip for the server of that operation
+    if(operation in ipTable):
+        host, port = ipTable[operation]
+
+        ss = socket.socket(socket.AF_INET,
+                           socket.SOCK_STREAM)
+
+        datos = (int(oprnd1), int(oprnd2))
+        serializados = marshal.dumps(datos)
+        msg = "Conectando a Host {} y Puerto {}".format(host, port)
+
+        try:
+            ss.connect((host, port))
+            # print("Conectado.")
+            # print((ss.recv(port)).decode())
+            ss.send(serializados)
+            msg = ss.recv(port)
+            ss.close()
+
+            # Enviar resultado de operación al cliente que la pidió
+            return msg
+
+        except socket.error as e:
+            print("Imposible conectar con servidor operador " + operation)
+            print(str(e))
+
+    else:
+        print("¡Servidor "+operation+" aún no en tabla de direcciones!")
+
+    output = "Imposible realizar la operación en estos momentos, intente después."
+    return output.encode()
+
+
 def serv_client(connection):
     # Enviar
     connection.send(str.encode('Bienvenido, Cliente.'))
@@ -32,50 +66,13 @@ def serv_client(connection):
     data = connection.recv(1024)
     if(len(data) > 0):
         deserializado = marshal.loads(data)
-        #print("Operación recibida.")
 
-        oprnd1 = deserializado[0]
-        operation = deserializado[1]
-        oprnd2 = deserializado[2]
-
-        #print("Operación en curso...")
-
-        # Validate that there's an ip for the server of that operation
-        if(operation in ipTable):
-            host, port = ipTable[operation]
-
-            ss = socket.socket(socket.AF_INET,
-                               socket.SOCK_STREAM)
-
-            datos = (int(oprnd1), int(oprnd2))
-            serializados = marshal.dumps(datos)
-            msg = "Conectando a Host {} y Puerto {}".format(host, port)
-
-            try:
-                ss.connect((host, port))
-                # print("Conectado.")
-                # print((ss.recv(port)).decode())
-                ss.send(serializados)
-                msg = ss.recv(port)
-                ss.close()
-
-                # Enviar resultado de operación al cliente que la pidió
-                connection.send(msg)
-                return
-            except socket.error as e:
-                print("Imposible conectar con servidor operador " + operation)
-                print(str(e))
-
-            #print("Resultado enviado al cliente.")
-
-        else:
-            print("¡Servidor "+operation+" aún no en tabla de direcciones!")
-
-        output = "Imposible realizar la operación en estos momentos, intente después."
-        connection.send(output.encode())
+        # Enviar Resultado
+        connection.send(get_result_from_serv_op(
+            deserializado[0], deserializado[1], deserializado[2]))
 
 
-def accept_connection(connection):
+def save_in_ip_Table(connection):
     # Enviar
     connection.send(str.encode('Bienvenido, servidor subrogado.'))
 
@@ -110,7 +107,7 @@ def threaded_client(connection):
             print('Conexión con ' + address[0] +
                   ' interrumpida por parte del cliente.')
     elif(data.decode() == "Servidor Operador"):
-        accept_connection(connection)
+        save_in_ip_Table(connection)
     else:
         print("Interación con el servidor no válida.")
 
